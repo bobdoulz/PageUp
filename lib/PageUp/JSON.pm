@@ -1,30 +1,27 @@
-
+package PageUp::JSON;
 
 use JSON;
-binmode STDOUT, ":utf8";
 use utf8;
-use Data::Dumper;
-
-package PageUp::JSON;
 use strict;
-#use base 'Exporter';
-#our @EXPORT_OK = ('addMeta', 'modifyMeta');
-
-#modifyMeta("fakeData.json", "boss/Name", "Paquita");
-#addMeta("fakeData.json", "boss/Banane", "Jean");
+use File::Basename;
+use base 'Exporter';
+our @EXPORT_OK = qw(addMeta modifyMeta createMetaFile);
+binmode STDOUT, ":utf8";
 
 sub openAndDecode {
-	my $fileName = $_[0];
-	print "Opening file ".$fileName."\n";
 	# Read the file
+	my ($fileName) = @_;
+	$fileName = correctFileName($fileName);
 	my $json;
 	local $/;
 	# Check if file exists
 	if (-e $fileName){
-		print "File does exist\n";
 		open my $fh, "<", $fileName;
 		$json = <$fh>;
  		close $fh;
+ 	}
+ 	else {
+ 		print $fileName . " does not exist\n";
  	}
 
  	# Decode JSON
@@ -34,20 +31,28 @@ sub openAndDecode {
 
 sub writeJSONToFile {
 	# Write new JSON file
-	my $data = $_[0];
-	my $fileName = $_[1];
+	my ($data, $fileName) = @_;
+	$fileName = correctFileName($fileName);
 	open my $fh, ">", $fileName;
 	print $fh JSON::encode_json($data);
 }
 
-sub openFileDecodeJSONCheckMeta {
-	my $fileName = $_[0];
-	my $metaName = $_[1];
-	my $metaValue = $_[2]; 
+# This subroutine checks if the fileName has the .json extension
+# and adds it if not
+sub correctFileName {
+	my ($fileName) = @_;
+	my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
+	if ($ext ne ".json"){
+		$fileName = "${fileName}.json";
+	}
+	return $fileName;
+}
 
+sub openFileDecodeJSONCheckMeta {
+	my ($fileName, $metaName, $metaValue) = @_;
+	$fileName = correctFileName($fileName);
  	# Decode JSON
  	my $data = openAndDecode($fileName);
-
  	# Check if the meta already exists 
  	if (!$data->{"$metaName"}){
  		return 0, $data;
@@ -58,13 +63,11 @@ sub openFileDecodeJSONCheckMeta {
 }
 
 sub modifyMeta {
-	my $fileName = $_[0];
-	my $metaName = $_[1];
-	my $metaValue = $_[2]; # If multiple values, should be adapted
+	my ($fileName, $metaName, $metaValue) = @_;
+	$fileName = correctFileName($fileName);
 
 	my ($exists, $data) = 
 	openFileDecodeJSONCheckMeta($fileName, $metaName, $metaValue);
-
  	if (!$exists){
  		 print "Meta not existing, cannot modify it, use add instead.\n";
  		return 0;
@@ -79,13 +82,11 @@ sub modifyMeta {
 }
 
 sub addMeta {
-	my $fileName = $_[0];
-	my $metaName = $_[1];
-	my $metaValue = $_[2];
+	my ($fileName, $metaName, $metaValue) = @_;
+	$fileName = correctFileName($fileName);
 
 	my ($exists, $data) = 
 	openFileDecodeJSONCheckMeta($fileName, $metaName, $metaValue);
-	
  	if (!$exists){
  		# Add meta value
  		$data->{"$metaName"} = $metaValue;
@@ -99,27 +100,13 @@ sub addMeta {
 }
 
 sub createMetaFile {
-	my $fileName = $_[0];
-	open FILE, ">".$fileName.".json" or die $!;
+	my ($fileName) = @_;
+	$fileName = correctFileName($fileName);
+	#print "JSON.pm : file to create $fileName\n";
+	open FILE, ">".$fileName or die $!;
 	print FILE "{}";
 	close FILE;
 }
 
-sub deleteMeta {
-	my $fileName = $_[0];
-	my $metaName = $_[1];
-	my $metaValue = $_[2]; # If multiple values, should be adapted
-
-	my ($exists, $jsonHierarchy, $data) = 
-	openFileDecodeJSONCheckMeta($fileName, $metaName, $metaValue);
-
-	if (!$exists){
- 		#print "The JSON meta does not exist, nothing to delete";
- 	}
- 	else {
- 		
-  	}
- 	return 1;
-}
-
+1;
 
