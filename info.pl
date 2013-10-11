@@ -20,12 +20,12 @@ my $fileName = $ARGV[0];
 my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
 
 # Create JSON file if not existing (should not happen at this stage though)
-my $existingJSON = 1;
+my $existingJSON = 0;
 if (! -e "${file}.json"){
 	PageUp::JSON::createMetaFile("${file}.json");
 }
 else {
-	$existingJSON = 0;
+	$existingJSON = 1;
 }
 
 # Identify everything. Yes. Everything.
@@ -44,12 +44,8 @@ foreach (@consideredTags){
 	$name = cleanString($name);
 	$name = lc($name);
 	$value = cleanString($value);
-	if ($existingJSON){
-		PageUp::JSON::addMeta($file, "info-$name", $value);
-	}
-	else {
-		PageUp::JSON::modifyMeta($file, "info-$name", $value);
-	}
+	PageUp::JSON::addOrModifyMeta($file, "info-$name", $value);
+
 }
 
 # Cleaning our temp shit
@@ -57,11 +53,6 @@ $retVal = `rm -f ${file}.id`;
 
 # Add time tracking info
 my $dateafter = `date`;
-if ($existingJSON){
-	PageUp::JSON::addMeta($file, "info-date-before", $datebefore);
-	PageUp::JSON::addMeta($file, "info-date-after", $dateafter);
-}
-else {
-	PageUp::JSON::modifyMeta($file, "info-date-before", $datebefore);
-	PageUp::JSON::modifyMeta($file, "info-date-after", $dateafter);
-}
+PageUp::JSON::addOrModifyMeta($file, "info-date-before", $datebefore);
+PageUp::JSON::addOrModifyMeta($file, "info-date-after", $dateafter);
+

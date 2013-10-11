@@ -7,24 +7,27 @@ use File::Basename;
 
 # Get the file to OCR and get his name, extension and path
 my $fileName = $ARGV[0];
-print "File to OCR: $fileName\n";
 my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
 
 # Create JSON file if not existing (should not happen at this stage though)
-if (! -e $fileName){
-	PageUp::createMetaFile("${file}.json");
+my $existingJSON = 0;
+if (! -e "${file}.json"){
+	PageUp::JSON::createMetaFile("${file}.json");
+}
+else {
+	$existingJSON = 1;
 }
 
 # OCR the shit out of the file
 my $datebefore = `date`;
-my $result = `/usr/local/bin/tesseract $fileName $file`;
+my $result = `/usr/local/bin/tesseract $fileName $file > /dev/null 2>&1`;
 my $dateafter = `date`;
 
 # Add info in the JSON file
-PageUp::JSON::addMeta($file, "ocr-date-before", $datebefore);
-PageUp::JSON::addMeta($file, "ocr-date-after", $dateafter);
 my $text = `cat $file.txt`;
-PageUp::JSON::addMeta($file, "ocr-text", $text);
+PageUp::JSON::addOrModifyMeta($file, "ocr-date-before", $datebefore);
+PageUp::JSON::addOrModifyMeta($file, "ocr-date-after", $dateafter);
+PageUp::JSON::addOrModifyMeta($file, "ocr-text", $text);
 
 # Clean our temp shit
 $result = `rm -f ${file}.txt`;

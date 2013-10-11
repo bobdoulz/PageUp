@@ -69,7 +69,7 @@ sub modifyMeta {
 	my ($exists, $data) = 
 	openFileDecodeJSONCheckMeta($fileName, $metaName, $metaValue);
  	if (!$exists){
- 		 print "Meta not existing, cannot modify it, use add instead.\n";
+ 		#print "Meta not existing, cannot modify it, use add instead.\n";
  		return 0;
  	}
  	else {
@@ -94,9 +94,16 @@ sub addMeta {
  		return 1;
  	}
  	else {
- 		print "Meta already existing, cannot add it, use modify to modify value.\n";
+ 		#print "Meta already existing, cannot add it, use modify to modify value.\n";
  		return 0;
  	}
+}
+
+sub addOrModifyMeta {
+	my ($fileName, $metaName, $metaValue) = @_;
+	if (! modifyMeta($fileName, $metaName, $metaValue)){
+		addMeta($fileName, $metaName, $metaValue);
+	}
 }
 
 sub createMetaFile {
