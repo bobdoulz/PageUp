@@ -6,7 +6,7 @@ use PageUp::JSON;
 use PageUp::Util;
 use File::Basename;
 
-# alternatively, check file from disk
+# Get the file to OCR and get his name, extension and path
 my $fileName = $ARGV[0];
 my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
 
