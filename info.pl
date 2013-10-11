@@ -20,7 +20,7 @@ else {
 }
 
 # Identify everything. Yes. Everything.
-my $datebefore = `date`;
+my $datebefore = PageUp::Util::getCurrentTime();
 my $retVal = `/usr/local/bin/identify -verbose $fileName > ${file}.id`;
 
 # This can be tuned to get more / less info 
@@ -43,7 +43,7 @@ foreach (@consideredTags){
 $retVal = `rm -f ${file}.id`;
 
 # Add time tracking info
-my $dateafter = `date`;
+my $dateafter = PageUp::Util::getCurrentTime();
 PageUp::JSON::addOrModifyMeta($file, "info-date-before", $datebefore);
 PageUp::JSON::addOrModifyMeta($file, "info-date-after", $dateafter);
 

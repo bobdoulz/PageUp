@@ -7,6 +7,51 @@ use warnings;
 use File::Basename;
 binmode STDOUT, ":utf8";
 
+####################################################
+#
+# The 3 following subroutines should be the only 
+# used subroutines in external programs
+#
+####################################################
+
+# Either add of modify depending of the existance of a meta
+sub addOrModifyMeta {
+	my ($fileName, $metaName, $metaValue) = @_;
+	if (! modifyMeta($fileName, $metaName, $metaValue)){
+		addMeta($fileName, $metaName, $metaValue);
+	}
+}
+
+# Create an empty JSON file
+sub createMetaFile {
+	my ($fileName) = @_;
+	$fileName = correctFileName($fileName);
+	#print "JSON.pm : file to create $fileName\n";
+	open FILE, ">".$fileName or die $!;
+	print FILE "{}";
+	close FILE;
+}
+
+####################################################
+#
+# The following subroutines should not be used by 
+# inexperienced programmers
+#
+####################################################
+
+# This subroutine checks if the fileName has the .json extension
+# and adds it if not
+sub correctFileName {
+	my ($fileName) = @_;
+	my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
+	if ($ext ne ".json"){
+		$fileName = "${fileName}.json";
+	}
+	return $fileName;
+}
+
+# Subroutine to open a JSON file, decode its content
+# and return it
 sub openAndDecode {
 	# Read the file
 	my ($fileName) = @_;
@@ -28,6 +73,7 @@ sub openAndDecode {
  	return $data;
 }
 
+# Take some JSON content and encode it into a file
 sub writeJSONToFile {
 	# Write new JSON file
 	my ($data, $fileName) = @_;
@@ -36,17 +82,7 @@ sub writeJSONToFile {
 	print $fh JSON::encode_json($data);
 }
 
-# This subroutine checks if the fileName has the .json extension
-# and adds it if not
-sub correctFileName {
-	my ($fileName) = @_;
-	my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
-	if ($ext ne ".json"){
-		$fileName = "${fileName}.json";
-	}
-	return $fileName;
-}
-
+# Open a JSOn file and check if a meta is already in it
 sub openFileDecodeJSONCheckMeta {
 	my ($fileName, $metaName, $metaValue) = @_;
 	$fileName = correctFileName($fileName);
@@ -61,6 +97,7 @@ sub openFileDecodeJSONCheckMeta {
  	}
 }
 
+# Modify a meta value in a JSON file
 sub modifyMeta {
 	my ($fileName, $metaName, $metaValue) = @_;
 	$fileName = correctFileName($fileName);
@@ -80,6 +117,7 @@ sub modifyMeta {
 
 }
 
+# Add a meta name and value in a JSON file
 sub addMeta {
 	my ($fileName, $metaName, $metaValue) = @_;
 	$fileName = correctFileName($fileName);
@@ -96,22 +134,6 @@ sub addMeta {
  		#print "Meta already existing, cannot add it, use modify to modify value.\n";
  		return 0;
  	}
-}
-
-sub addOrModifyMeta {
-	my ($fileName, $metaName, $metaValue) = @_;
-	if (! modifyMeta($fileName, $metaName, $metaValue)){
-		addMeta($fileName, $metaName, $metaValue);
-	}
-}
-
-sub createMetaFile {
-	my ($fileName) = @_;
-	$fileName = correctFileName($fileName);
-	#print "JSON.pm : file to create $fileName\n";
-	open FILE, ">".$fileName or die $!;
-	print FILE "{}";
-	close FILE;
 }
 
 1;

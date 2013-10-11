@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use lib 'lib';
 use PageUp::JSON;
+use PageUp::Util;
 use File::Basename;
 
 # Get the file to OCR and get his name, extension and path
@@ -19,9 +20,9 @@ else {
 }
 
 # OCR the shit out of the file
-my $datebefore = `date`;
+my $datebefore = PageUp::Util::getCurrentTime();
 my $result = `/usr/local/bin/tesseract $fileName $file > /dev/null 2>&1`;
-my $dateafter = `date`;
+my $dateafter = PageUp::Util::getCurrentTime();
 
 # Add info in the JSON file
 my $text = `cat $file.txt`;
