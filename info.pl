@@ -3,47 +3,65 @@ use strict;
 use warnings;
 use lib 'lib';
 use PageUp::JSON qw(modifyMeta addMeta createMetaFile);
-use File::Type;
-use Image::Info qw(image_info dim);
-use Switch;
+use File::Basename;
 
-my $ft = File::Type->new();
-
-# read in data from file to $data, then
-#my $type_from_data = $ft->checktype_contents($data);
-
-# alternatively, check file from disk
-my $file = "1017_001.tiff";
-my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
-
-
-my $type_from_file = $ft->checktype_filename($file);
-
-# convenient method for checking either a file or data
-my $type_1 = $ft->mime_type($file);
-#my $type_2 = $ft->mime_type($data);
-
-switch ($type_1) {
-	case "image/tiff" {processingTIFF()}
-	else {print "Type unknown"}
+# subroutine to remove spaces at beginning and end of string
+# also remove newlines
+sub cleanString{
+	my ($string) = @_;
+	$string =~ s/\n\s*/ /g;
+	$string =~ s/^\s*//g;
+	$string =~ s/\s*$//g;
+	return $string;
 }
 
-sub processingTIFF {
-	print "This is a TIFF image\n";
-	my $info = Image::Info->image_info("ay5XvzY_460s.jpg");
-	if (my $error = $info->{error}) {
-		die "Can't parse image info: $error\n";
+# alternatively, check file from disk
+my $fileName = $ARGV[0];
+my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
+
+# Create JSON file if not existing (should not happen at this stage though)
+my $existingJSON = 1;
+if (! -e "${file}.json"){
+	PageUp::JSON::createMetaFile("${file}.json");
+}
+else {
+	$existingJSON = 0;
+}
+
+# Identify everything. Yes. Everything.
+my $datebefore = `date`;
+my $retVal = `/usr/local/bin/identify -verbose $fileName > ${file}.id`;
+
+# This can be tuned to get more / less info 
+my @consideredTags = qw (Resolution Geometry Colorspace Depth);
+# For each info, we grep the info, split and clean then store
+foreach (@consideredTags){
+	my $tag = $_;
+	my $currentInfo = `grep $tag ${file}.id`;
+	my @splitNameValue = split(/:/, $currentInfo);
+	my $name = $splitNameValue[0];
+	my $value = $splitNameValue[1];
+	$name = cleanString($name);
+	$name = lc($name);
+	$value = cleanString($value);
+	if ($existingJSON){
+		PageUp::JSON::addMeta($file, "info-$name", $value);
 	}
+	else {
+		PageUp::JSON::modifyMeta($file, "info-$name", $value);
+	}
+}
 
-	my $color = $info->{color_type};
- 	my $type = Image::Info->image_type("ay5XvzY_460s.jpg");
- 	if (my $error = $type->{error}) {
- 		die "Can't determine file type: $error\n";
- 	}
- 	die "No gif files allowed!" if $type->{file_type} eq 'GIF';
- 	my($w, $h) = dim($info);
+# Cleaning our temp shit
+$retVal = `rm -f ${file}.id`;
 
- 	print "color = ".$color."\n";
- 	print "type = ".$type."\n";
- 	print "w = ".$w." h = ".$h."\n";
+# Add time tracking info
+my $dateafter = `date`;
+if ($existingJSON){
+	PageUp::JSON::addMeta($file, "info-date-before", $datebefore);
+	PageUp::JSON::addMeta($file, "info-date-after", $dateafter);
+}
+else {
+	PageUp::JSON::modifyMeta($file, "info-date-before", $datebefore);
+	PageUp::JSON::modifyMeta($file, "info-date-after", $dateafter);
 }
