@@ -25,8 +25,10 @@ do {
 			$tar->add_files("./$folderOut/$file");
 			my ($name,$rep,$ext) = fileparse("$folderOut/$file", qr/\.[^.]*/);
 			$tar->add_files("./$folderOut/${name}.json");
+			# Renaming to avoid having $folderOut when extracting
 			$tar->rename("$folderOut/${name}.json", "${name}.json");
 			$tar->rename("$folderOut/${name}.tiff", "${name}.tiff");
+			# Write dat shit
 			$tar->write("$folderOut/${name}.tar");
 			# Remove the other files
 			$retVal = `rm -f $folderOut/$file $folderOut/${name}.json`;
