@@ -12,8 +12,8 @@ my ($file,$dir,$ext) = fileparse($fileName, qr/\.[^.]*/);
 
 # Create JSON file if not existing (should not happen at this stage though)
 my $existingJSON = 0;
-if (! -e "${file}.json"){
-	PageUp::JSON::createMetaFile("${file}.json");
+if (! -e "$dir/${file}.json"){
+	PageUp::JSON::createMetaFile("$dir/${file}.json");
 }
 else {
 	$existingJSON = 1;
@@ -21,29 +21,29 @@ else {
 
 # Identify everything. Yes. Everything.
 my $datebefore = PageUp::Util::getCurrentTime();
-my $retVal = `/usr/local/bin/identify -verbose $fileName > ${file}.id`;
+my $retVal = `/usr/local/bin/identify -verbose $fileName > $dir/${file}.id`;
 
 # This can be tuned to get more / less info 
 my @consideredTags = qw (Resolution Geometry Colorspace Depth);
 # For each info, we grep the info, split and clean then store
 foreach (@consideredTags){
 	my $tag = $_;
-	my $currentInfo = `grep $tag ${file}.id`;
+	my $currentInfo = `grep $tag $dir/${file}.id`;
 	my @splitNameValue = split(/:/, $currentInfo);
 	my $name = $splitNameValue[0];
 	my $value = $splitNameValue[1];
 	$name = PageUp::Util::cleanString($name);
 	$name = lc($name);
 	$value = PageUp::Util::cleanString($value);
-	PageUp::JSON::addOrModifyMeta($file, "info-$name", $value);
+	PageUp::JSON::addOrModifyMeta("$dir/$file", "info-$name", $value);
 
 }
 
 # Cleaning our temp shit
-$retVal = `rm -f ${file}.id`;
+$retVal = `rm -f $dir/${file}.id`;
 
 # Add time tracking info
 my $dateafter = PageUp::Util::getCurrentTime();
-PageUp::JSON::addOrModifyMeta($file, "info-date-before", $datebefore);
-PageUp::JSON::addOrModifyMeta($file, "info-date-after", $dateafter);
+PageUp::JSON::addOrModifyMeta("$dir/$file", "info-date-before", $datebefore);
+PageUp::JSON::addOrModifyMeta("$dir/$file", "info-date-after", $dateafter);
 
