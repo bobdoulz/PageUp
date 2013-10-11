@@ -3,9 +3,8 @@ package PageUp::JSON;
 use JSON;
 use utf8;
 use strict;
+use warnings;
 use File::Basename;
-use base 'Exporter';
-our @EXPORT_OK = qw(addMeta modifyMeta createMetaFile);
 binmode STDOUT, ":utf8";
 
 sub openAndDecode {

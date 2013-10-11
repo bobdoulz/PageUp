@@ -2,18 +2,9 @@
 use strict;
 use warnings;
 use lib 'lib';
-use PageUp::JSON qw(modifyMeta addMeta createMetaFile);
+use PageUp::JSON;
+use PageUp::Util;
 use File::Basename;
-
-# subroutine to remove spaces at beginning and end of string
-# also remove newlines
-sub cleanString{
-	my ($string) = @_;
-	$string =~ s/\n\s*/ /g;
-	$string =~ s/^\s*//g;
-	$string =~ s/\s*$//g;
-	return $string;
-}
 
 # alternatively, check file from disk
 my $fileName = $ARGV[0];
@@ -41,9 +32,9 @@ foreach (@consideredTags){
 	my @splitNameValue = split(/:/, $currentInfo);
 	my $name = $splitNameValue[0];
 	my $value = $splitNameValue[1];
-	$name = cleanString($name);
+	$name = PageUp::Util::cleanString($name);
 	$name = lc($name);
-	$value = cleanString($value);
+	$value = PageUp::Util::cleanString($value);
 	PageUp::JSON::addOrModifyMeta($file, "info-$name", $value);
 
 }
